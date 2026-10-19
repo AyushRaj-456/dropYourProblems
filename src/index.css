@@ -1,0 +1,46 @@
+:root {
+  --bg: #F2F2EE;
+  --text: #111111;
+  --text-secondary: #3C413D;
+  --text-muted: #4A4F4B;
+  --hairline: #D6D7D0;
+  --input-border: #B9BBB3;
+  --placeholder: #DADBD3;
+  --accent: #2540E8;
+  --input-bg: #FFFFFF;
+  --radius: 6px;
+  --font-sans: 'Josefin Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+}

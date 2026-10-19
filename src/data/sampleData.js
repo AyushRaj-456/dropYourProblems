@@ -1,0 +1,97 @@
+export const SAMPLE_PROBLEMS = [
+  {
+    id: 'sample-1',
+    text: 'State portal forces OTP re-entry on every screen and session expires after 2 minutes of inactivity.',
+    tag: 'Websites',
+    product: 'Gov Portal',
+    status: 'Open',
+    meTooCount: 87,
+    authorName: 'Aarav',
+    createdAt: '18 Oct, 4:12 pm',
+  },
+  {
+    id: 'sample-2',
+    text: 'Lost browser tabs after unexpected restart cannot be restored per workspace, mixing 40 work and personal tabs together.',
+    tag: 'Browser Extensions',
+    product: 'Chrome',
+    status: 'Building',
+    meTooCount: 64,
+    authorName: 'Priya',
+    createdAt: '17 Oct, 9:40 pm',
+  },
+  {
+    id: 'sample-3',
+    text: 'AI coding assistants lose context across multi-package monorepos and start hallucinating nonexistent imports.',
+    tag: 'AI Tools',
+    product: 'Copilot',
+    status: 'Open',
+    meTooCount: 42,
+    authorName: 'DevK',
+    createdAt: '16 Oct, 11:05 am',
+  },
+  {
+    id: 'sample-4',
+    text: 'Banking mobile apps disable autofill and paste for IFSC and account numbers, causing frequent manual errors.',
+    tag: 'Mobile Apps',
+    product: 'Banking App',
+    status: 'Open',
+    meTooCount: 29,
+    authorName: 'Rohan',
+    createdAt: '15 Oct, 2:30 pm',
+  },
+];
+
+export const SAMPLE_CONTRIBUTORS = [
+  {
+    id: 'contrib-1',
+    name: 'Priya S.',
+    problemTitle: 'Lost browser tabs cannot be restored per workspace',
+    meTooCount: 64,
+    initial: 'P',
+  },
+  {
+    id: 'contrib-2',
+    name: 'Aarav M.',
+    problemTitle: 'State portal session expires after 2 minutes',
+    meTooCount: 87,
+    initial: 'A',
+  },
+  {
+    id: 'contrib-3',
+    name: 'Rohan K.',
+    problemTitle: 'Banking apps disable paste for account numbers',
+    meTooCount: 29,
+    initial: 'R',
+  },
+];
+
+export const TAGS = [
+  'All',
+  'Websites',
+  'Browser Extensions',
+  'Mobile Apps',
+  'AI Tools',
+  'Developer Tools',
+  'Productivity',
+  'Gaming',
+  'Social Media',
+  'Digital Services',
+  'Hardware',
+  'Accessibility',
+  'Other',
+];
+
+export const FORM_TAGS = [
+  'Websites',
+  'Browser Extensions',
+  'Mobile Apps',
+  'AI Tools',
+  'Developer Tools',
+  'Productivity',
+  'Gaming',
+  'Social Media',
+  'Digital Services',
+  'Hardware',
+  'Accessibility',
+  'Other',
+];

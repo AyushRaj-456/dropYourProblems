@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drop Your Problems (design reference)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F2F2EE}
+button,input,select,textarea{font:inherit;color:inherit}
+</style>
+</head>
+<body>
+
+<div style="font-family:'Archivo',sans-serif;color:#111;background:#F2F2EE">
+<div style="max-width:880px;margin:0 auto;padding:0 24px 96px;box-sizing:border-box">
+
+<header style="display:flex;justify-content:space-between;align-items:center;padding:32px 0">
+<span style="font-weight:800;font-size:18px;letter-spacing:-0.02em">drop your problems</span>
+<nav style="display:flex;gap:24px;font-size:15px;font-weight:500"><a href="#" style="color:#111">Board</a><a href="#" style="color:#4A4F4B">Contributors</a></nav>
+</header>
+
+<section style="padding:64px 0 40px">
+<h1 style="margin:0;font-weight:800;font-size:60px;line-height:1.04;letter-spacing:-0.035em">What's annoying you on campus?</h1>
+<p style="margin:18px 0 0;font-size:19px;line-height:1.5;color:#3C413D;max-width:520px">Say it in your own words. The problems that most people feel get built.</p>
+</section>
+
+<form style="display:flex;flex-direction:column;gap:16px;padding-bottom:56px;border-bottom:1px solid #D6D7D0">
+<label style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:14px;font-weight:700">The problem</span>
+<textarea rows="3" placeholder="Type it, or tap Speak." style="resize:none;border:1px solid #111;border-radius:6px;padding:16px;font-size:18px;line-height:1.5;background:#fff"></textarea>
+</label>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+<button type="button" style="min-height:48px;padding:0 20px;border:1px solid #111;border-radius:6px;background:transparent;font-weight:700;cursor:pointer">Speak</button>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#4A4F4B">Tag</span>
+<select style="min-height:48px;border:1px solid #B9BBB3;border-radius:6px;padding:0 12px;background:#fff"><option>Canteen</option><option>Academics</option><option>Hostel</option><option>Transport</option><option>Placements</option><option>Money</option><option>Other</option></select></label>
+<label style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px"><span style="font-size:13px;color:#4A4F4B">Name (optional)</span>
+<input type="text" placeholder="Anonymous" style="min-height:48px;border:1px solid #B9BBB3;border-radius:6px;padding:0 12px;background:#fff;box-sizing:border-box"></label>
+<button type="button" style="min-height:48px;padding:0 28px;border:0;border-radius:6px;background:#2540E8;color:#fff;font-weight:700;font-size:16px;cursor:pointer">Drop it</button>
+</div>
+<a href="#" style="font-size:14px;color:#4A4F4B;width:max-content">Add more detail (year, how often, what you do today)</a>
+</form>
+
+<section style="padding-top:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+<nav style="display:flex;gap:20px;flex-wrap:wrap;font-size:15px;font-weight:500"><a href="#" style="color:#111;border-bottom:2px solid #111;padding-bottom:4px">All</a><a href="#" style="color:#4A4F4B">Academics</a><a href="#" style="color:#4A4F4B">Hostel</a><a href="#" style="color:#4A4F4B">Canteen</a><a href="#" style="color:#4A4F4B">Transport</a><a href="#" style="color:#4A4F4B">Placements</a></nav>
+<nav style="display:flex;gap:16px;font-size:14px"><a href="#" style="color:#111;font-weight:700">Most me-too</a><a href="#" style="color:#4A4F4B">Newest</a></nav>
+</div>
+
+<article style="padding:28px 0;border-bottom:1px solid #D6D7D0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#2540E8">Canteen · Building</div>
+<p style="margin:10px 0 14px;font-size:22px;line-height:1.35;font-weight:700;max-width:640px">Can't tell if the canteen is packed until I've already walked there.</p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<button type="button" style="min-height:44px;padding:0 18px;border:1px solid #111;border-radius:6px;background:#fff;font-weight:700;cursor:pointer">Me too · 87</button>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">Anonymous · 1st year · 18 Oct, 4:12 pm</span>
+</div>
+</article>
+
+<article style="padding:28px 0;border-bottom:1px solid #D6D7D0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#2540E8">Hostel</div>
+<p style="margin:10px 0 14px;font-size:22px;line-height:1.35;font-weight:700;max-width:640px">Wi-Fi drops every evening right when assignments are due.</p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<button type="button" style="min-height:44px;padding:0 18px;border:1px solid #111;border-radius:6px;background:#fff;font-weight:700;cursor:pointer">Me too · 64</button>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">Ravi · 2nd year · 17 Oct, 9:40 pm</span>
+</div>
+<p style="margin:14px 0 0;font-size:14px;color:#3C413D">10+ me-too reached. Ravi can now <a href="#" style="color:#2540E8;font-weight:700">add a name and photo</a> to join Contributors.</p>
+</article>
+
+<article style="padding:28px 0;border-bottom:1px solid #D6D7D0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#2540E8">Academics</div>
+<p style="margin:10px 0 14px;font-size:22px;line-height:1.35;font-weight:700;max-width:640px">Nobody knows the current lab record format until submission day.</p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<button type="button" style="min-height:44px;padding:0 18px;border:1px solid #111;border-radius:6px;background:#fff;font-weight:700;cursor:pointer">Me too · 6</button>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">Anonymous · 1st year · 16 Oct, 11:05 am</span>
+</div>
+</article>
+</section>
+
+<section style="padding-top:96px">
+<h2 style="margin:0;font-weight:800;font-size:36px;letter-spacing:-0.03em">Contributors</h2>
+<p style="margin:12px 0 0;font-size:17px;line-height:1.5;color:#3C413D;max-width:520px">Post a problem that gets 10 me-too and you can add your name and photo here. You helped the campus see what needs fixing.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:36px">
+<div><div style="aspect-ratio:1/1;background:#DADBD3;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:48px;color:#4A4F4B" role="img" aria-label="Photo placeholder for Ravi">R</div>
+<div style="margin-top:12px;font-weight:700;font-size:17px">Ravi</div>
+<div style="margin-top:4px;font-size:14px;line-height:1.4;color:#3C413D">Wi-Fi drops every evening</div>
+<div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">64 me-too</div></div>
+<div><div style="aspect-ratio:1/1;background:#DADBD3;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:48px;color:#4A4F4B" role="img" aria-label="Photo placeholder for Meera">M</div>
+<div style="margin-top:12px;font-weight:700;font-size:17px">Meera</div>
+<div style="margin-top:4px;font-size:14px;line-height:1.4;color:#3C413D">Weekend cab costs too much alone</div>
+<div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">41 me-too</div></div>
+<div><div style="aspect-ratio:1/1;background:#DADBD3;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:48px;color:#4A4F4B" role="img" aria-label="Photo placeholder for Arjun">A</div>
+<div style="margin-top:12px;font-weight:700;font-size:17px">Arjun</div>
+<div style="margin-top:4px;font-size:14px;line-height:1.4;color:#3C413D">No senior guide for internships</div>
+<div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A4F4B">28 me-too</div></div>
+</div>
+</section>
+
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isFullyAuthenticated() {
+      return isSignedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isAuthor(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidTag(tag) {
+      return tag in [
+        'Websites', 'Browser Extensions', 'Mobile Apps', 'AI Tools', 'Developer Tools',
+        'Productivity', 'Gaming', 'Social Media', 'Digital Services', 'Hardware',
+        'Accessibility', 'Other',
+        'Canteen', 'Academics', 'Hostel', 'Transport', 'Placements', 'Money'
+      ];
+    }
+
+    function validStatus(s) {
+      return s in ['open', 'building', 'launched'];
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins collection: read own admin status, only created manually in console
+    match /admins/{uid} {
+      allow read: if isAuthor(uid);
+      allow write: if false;
+    }
+
+    // User stats for rate limiting
+    match /userStats/{uid} {
+      allow read: if isAuthor(uid);
+      allow write: if isAuthor(uid)
+        && request.resource.data.keys().hasOnly(['lastPostAt'])
+        && (request.resource.data.lastPostAt == request.time || (request.resource.data.lastPostAt is timestamp && request.resource.data.lastPostAt <= request.time));
+    }
+
+    // Problems
+    match /problems/{problemId} {
+      // Anyone can read non-hidden problems; admins can read all
+      allow read: if (resource != null && resource.data.hidden == false) || isAdmin();
+
+      // Create problem
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 600
+        && isValidTag(request.resource.data.tag)
+        && request.resource.data.status == 'open'
+        && request.resource.data.meTooCount == 0
+        && request.resource.data.reportCount == 0
+        && request.resource.data.hidden == false
+        && request.resource.data.createdAt is timestamp
+        && (request.resource.data.createdAt == request.time || request.resource.data.createdAt <= request.time)
+        // Optional fields check
+        && (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 50))
+        && (!('product' in request.resource.data) || (request.resource.data.product is string && request.resource.data.product.size() <= 80))
+        && (!('year' in request.resource.data) || (request.resource.data.year is string && request.resource.data.year.size() <= 30))
+        && (!('frequency' in request.resource.data) || (request.resource.data.frequency is string && request.resource.data.frequency.size() <= 30))
+        && (!('workaround' in request.resource.data) || (request.resource.data.workaround is string && request.resource.data.workaround.size() <= 300))
+        // Rate limit: gap of 30 seconds since last post if userStats exists
+        && (
+          !exists(/databases/$(database)/documents/userStats/$(request.auth.uid))
+          || request.time > get(/databases/$(database)/documents/userStats/$(request.auth.uid)).data.lastPostAt + duration.value(30, 's')
+        );
+
+      // Edit problem: author only, only text and optional fields
+      allow update: if resource != null && (
+        (
+          isAuthor(resource.data.authorUid)
+          && request.resource.data.authorUid == resource.data.authorUid
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.meTooCount == resource.data.meTooCount
+          && request.resource.data.reportCount == resource.data.reportCount
+          && request.resource.data.hidden == resource.data.hidden
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 600
+          && isValidTag(request.resource.data.tag)
+          && (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 50))
+          && (!('product' in request.resource.data) || (request.resource.data.product is string && request.resource.data.product.size() <= 80))
+          && (!('year' in request.resource.data) || (request.resource.data.year is string && request.resource.data.year.size() <= 30))
+          && (!('frequency' in request.resource.data) || (request.resource.data.frequency is string && request.resource.data.frequency.size() <= 30))
+          && (!('workaround' in request.resource.data) || (request.resource.data.workaround is string && request.resource.data.workaround.size() <= 300))
+        )
+        // Or vote increment (Upvote) - requires non-anonymous authenticated user who hasn't already voted
+        || (
+          isFullyAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['meTooCount'])
+          && request.resource.data.meTooCount == resource.data.meTooCount + 1
+          && request.auth.uid != resource.data.authorUid
+          && !exists(/databases/$(database)/documents/problems/$(problemId)/votes/$(request.auth.uid))
+        )
+        // Or report increment (Phase 3)
+        || (
+          isSignedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportCount'])
+          && request.resource.data.reportCount == resource.data.reportCount + 1
+        )
+        // Or admin updating status or hidden
+        || (
+          isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'hidden'])
+          && validStatus(request.resource.data.status)
+          && request.resource.data.hidden is bool
+        )
+      );
+
+      // Delete: author or admin
+      allow delete: if resource != null && (isAuthor(resource.data.authorUid) || isAdmin());
+
+      // Subcollection: votes
+      match /votes/{voterUid} {
+        allow read: if isSignedIn() && request.auth.uid == voterUid;
+        allow create: if isFullyAuthenticated()
+          && request.auth.uid == voterUid
+          && exists(/databases/$(database)/documents/problems/$(problemId))
+          && request.auth.uid != get(/databases/$(database)/documents/problems/$(problemId)).data.authorUid
+          && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time));
+        allow update, delete: if false;
+      }
+
+      // Subcollection: reports
+      match /reports/{reporterUid} {
+        allow read: if isAdmin() || (isSignedIn() && request.auth.uid == reporterUid);
+        allow create: if isSignedIn()
+          && request.auth.uid == reporterUid
+          && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time));
+        allow update, delete: if false;
+      }
+    }
+
+    // Contributors
+    match /contributors/{problemId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        // Must not be anonymous
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        // Author must own the problem and contributor record
+        && request.auth.uid == request.resource.data.authorUid
+        && exists(/databases/$(database)/documents/problems/$(problemId))
+        && get(/databases/$(database)/documents/problems/$(problemId)).data.authorUid == request.auth.uid
+        && get(/databases/$(database)/documents/problems/$(problemId)).data.meTooCount >= 10
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 50
+        && (!('photoData' in request.resource.data) || (request.resource.data.photoData is string && request.resource.data.photoData.size() <= 65000))
+        && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time));
+
+      allow update: if resource != null
+        && isSignedIn()
+        && request.auth.uid == resource.data.authorUid
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 50
+        && (!('photoData' in request.resource.data) || (request.resource.data.photoData is string && request.resource.data.photoData.size() <= 65000));
+
+      allow delete: if resource != null && ((isSignedIn() && request.auth.uid == resource.data.authorUid) || isAdmin());
+    }
+  }
+}
