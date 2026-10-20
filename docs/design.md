@@ -50,10 +50,19 @@ All text must keep at least 4.5:1 contrast. Do not lighten the muted text.
 - **Primary button:** accent background, white text, 48px high, radius 6, 700.
 - **Secondary button:** transparent, 1px #111 border, radius 6, 700.
 - **Filters:** text links. Active one is #111 with a 2px underline; others are muted. Sort sits on the right as two text links, active one bold.
-- **Problem row:** no box and no card. Hairline under each row, 28px vertical padding. Top line is the mono tag line: "CANTEEN" or "CANTEEN · BUILDING". Then the title. Then a row with the Me too button and the mono meta (name or Anonymous, year if given, date and time).
-- **Me too button:** secondary style, 44px high, label "Me too · 87". After tapping it shows "Me too · 88" with a heavier border; tapping again does nothing.
-- **Contributor prompt:** a small line under a row: "10+ me-too reached. [Name] can now add a name and photo to join Contributors." Link text in accent, bold.
-- **Contributors grid:** columns of at least 240px, 24px gap. Each item: square photo (aspect 1/1, radius 6) or placeholder with the first letter, then name (700, 17px), problem (14px), mono "64 me-too".
+- **Problem row:** no box and no card. Hairline under each row, 28px vertical padding. Top line is the mono tag line: "CANTEEN" or "CANTEEN · BUILDING". Then the title. Then an action row containing the Upvote button, the Discuss button, and the mono meta (name or Anonymous, year if given, date and time).
+- **Upvote button:** secondary style, 44px high, label "Upvote · 87". After tapping it shows "Upvote · 88" with a heavier border; tapping again does nothing.
+- **Discuss button:** secondary style, 44px high, label "Discuss · N" (N is the message count, e.g. "Discuss · 0" or "Discuss · 5"), placed immediately beside the Upvote button. Tapping toggles the inline discussion thread under the row.
+- **Discussion thread:** opens inline directly under the problem row, bounded by subtle top/bottom hairline borders with 20px padding.
+  - **Thread layout:** 16px vertical gap between messages.
+  - **Message header:** author name (14px, 700), mono timestamp (12px IBM Plex Mono, muted #4A4F4B), and an optional mono badge "POSTER" (11px, bold, uppercase, mono accent) if the message author matches the problem's authorUid.
+  - **Message body:** 15px plain text, line-height 1.5, #111111. Plain text only, no markdown, no clickable links, no emojis/icons.
+  - **Message actions:** small text links below each message (Edit, Delete for author; Report for other users; Hide, Delete for admin).
+  - **Discussion form:** logged-in users see a text area (1 to 1000 characters) and a primary "Post message" button (44px high). If user lacks a display name, prompt once before posting. Unauthenticated/anonymous users see the plain text: "Log in to join the discussion." with a bold "Log in" link.
+  - **Pagination:** loads the oldest 30 messages first, with a "Load more" secondary button or text link when more messages exist.
+  - **Empty state:** "No discussion yet. Be the first to share an idea."
+- **Contributor prompt:** a small line under a row: "10+ upvotes reached. [Name] can now add a name and photo to join Contributors." Link text in accent, bold.
+- **Contributors grid:** columns of at least 240px, 24px gap. Each item: square photo (aspect 1/1, radius 6) or placeholder with the first letter, then name (700, 17px), problem (14px), mono "64 upvotes".
 - **Inputs:** 48px high, 1px #B9BBB3, radius 6, white. Every input has a visible label.
 - **Focus:** 2px outline in accent, 2px offset, on every interactive element.
 
@@ -65,7 +74,7 @@ All text must keep at least 4.5:1 contrast. Do not lighten the muted text.
 - Empty states: one sentence, no illustration. For example "No problems here yet. Be the first to drop one."
 
 ## Copy
-Short, plain, human. No marketing words. Use "Me too", "Drop it", "Contributors". Dates like "18 Oct, 4:12 pm".
+Short, plain, human. No marketing words. Use "Upvote", "Discuss", "Drop it", "Contributors". Dates like "18 Oct, 4:12 pm".
 
 ## Accessibility
 Real buttons, links, labels. Photos get alt text. Tap targets at least 44px. Do not rely on color alone. Respect reduced motion; there is almost no motion anyway.

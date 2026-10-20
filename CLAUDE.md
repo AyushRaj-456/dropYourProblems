@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## What this is
-"Drop Your Problems": a web app for students of one college (SIT Tumakuru). Students post problems they face, others tap "Me too", problems are ranked by Me-too count. A poster whose problem reaches 10 Me-too can add a name and photo and be listed as a Contributor. The goal is to discover which real problems are worth building.
+"Drop Your Problems": a web app for students of one college (SIT Tumakuru). Students post problems they face, others tap "Upvote", problems are ranked by Upvote count. A poster whose problem reaches 10 Upvotes can add a name and photo and be listed as a Contributor. The goal is to discover which real problems are worth building.
 
 Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/plan.md` before writing code. Build in the order of `docs/plan.md`, one phase at a time, and stop at each "Done when".
 
@@ -10,7 +10,7 @@ Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/plan.md`
 - **React with plain JavaScript.** No TypeScript. Vite for the build.
 - **No emojis and no icons**, anywhere in UI, copy, or docs. Text only.
 - **Match the design exactly.** Follow `docs/design.md` and `design-reference/index.html`. No gradients, shadows, animations for show, or extra decoration.
-- **Anonymous posting must always work.** Everyone is signed in anonymously by default; login upgrades that same identity. Login is never required to post or to say "Me too".
+- **Anonymous posting must always work.** Everyone is signed in anonymously by default; login upgrades that same identity. Login is never required to post or to upvote.
 - **Mobile first.** Most users are on phones. Check every screen at 390px and at 1280px.
 - **Voice input** uses the browser's Web Speech API. Show the Speak button only when the browser supports it. Typing always works.
 - **Stay small.** Do not add features that are not in v1 of `docs/product.md`.

@@ -648,4 +648,390 @@ test('clients cannot create or edit documents in admins collection directly', as
   );
 });
 
+// --- Phase 9 Discussion Tests ---
+
+test('anyone can read non-hidden discussion messages, but cannot read hidden messages unless admin', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Discussion problem',
+      tag: 'Websites',
+      authorUid: 'author1',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 1,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-public').set({
+      text: 'Public message',
+      authorUid: 'author1',
+      authorName: 'Author One',
+      createdAt: new Date(),
+      hidden: false,
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-hidden').set({
+      text: 'Hidden message',
+      authorUid: 'author1',
+      authorName: 'Author One',
+      createdAt: new Date(),
+      hidden: true,
+    });
+    await context.firestore().collection('admins').doc('admin-user').set({ role: 'admin' });
+  });
+
+  const unauthDb = testEnv.unauthenticatedContext().firestore();
+  await assertSucceeds(unauthDb.collection('problems').doc('p1').collection('messages').doc('msg-public').get());
+  await assertFails(unauthDb.collection('problems').doc('p1').collection('messages').doc('msg-hidden').get());
+
+  const anonDb = testEnv.authenticatedContext('anon-user', {
+    firebase: { sign_in_provider: 'anonymous' },
+  }).firestore();
+  await assertSucceeds(anonDb.collection('problems').doc('p1').collection('messages').doc('msg-public').get());
+  await assertFails(anonDb.collection('problems').doc('p1').collection('messages').doc('msg-hidden').get());
+
+  const adminDb = testEnv.authenticatedContext('admin-user').firestore();
+  await assertSucceeds(adminDb.collection('problems').doc('p1').collection('messages').doc('msg-hidden').get());
+});
+
+test('anonymous user cannot write a discussion message', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Discussion problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 0,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+  });
+
+  const anonDb = testEnv.authenticatedContext('anon-user', {
+    firebase: { sign_in_provider: 'anonymous' },
+  }).firestore();
+
+  const batch = anonDb.batch();
+  batch.set(anonDb.collection('problems').doc('p1').collection('messages').doc('m1'), {
+    text: 'Anonymous comment attempt',
+    authorUid: 'anon-user',
+    authorName: 'Anon',
+    createdAt: new Date(),
+    hidden: false,
+  });
+  batch.update(anonDb.collection('problems').doc('p1'), {
+    commentCount: 1,
+  });
+
+  await assertFails(batch.commit());
+});
+
+test('logged-in user can post a discussion message and increment commentCount', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Discussion problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 0,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+  });
+
+  const bobDb = testEnv.authenticatedContext('bob', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+
+  const batch = bobDb.batch();
+  batch.set(bobDb.collection('problems').doc('p1').collection('messages').doc('msg-1'), {
+    text: 'Great idea, I have experienced this too.',
+    authorUid: 'bob',
+    authorName: 'Bob Builder',
+    createdAt: new Date(),
+    hidden: false,
+  });
+  batch.update(bobDb.collection('problems').doc('p1'), {
+    commentCount: 1,
+  });
+  batch.set(bobDb.collection('userStats').doc('bob'), {
+    lastMessageAt: new Date(),
+  }, { merge: true });
+
+  await assertSucceeds(batch.commit());
+});
+
+test('nobody can change commentCount directly without complying with rules', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Discussion problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 5,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+  });
+
+  // 1. Problem author editing post cannot alter commentCount
+  const aliceDb = testEnv.authenticatedContext('alice').firestore();
+  await assertFails(
+    aliceDb.collection('problems').doc('p1').update({
+      text: 'Updated problem text',
+      commentCount: 99,
+    })
+  );
+
+  // 2. Anonymous user cannot update commentCount
+  const anonDb = testEnv.authenticatedContext('anon-user', {
+    firebase: { sign_in_provider: 'anonymous' },
+  }).firestore();
+  await assertFails(
+    anonDb.collection('problems').doc('p1').update({
+      commentCount: 6,
+    })
+  );
+
+  // 3. Authenticated user cannot set arbitrary value
+  const bobDb = testEnv.authenticatedContext('bob', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+  await assertFails(
+    bobDb.collection('problems').doc('p1').update({
+      commentCount: 50,
+    })
+  );
+});
+
+test('only author can edit their own message text', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 1,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-bob').set({
+      text: 'Original message text by Bob',
+      authorUid: 'bob',
+      authorName: 'Bob Builder',
+      createdAt: new Date(),
+      hidden: false,
+    });
+  });
+
+  const charlieDb = testEnv.authenticatedContext('charlie', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+
+  // Non-author cannot edit
+  await assertFails(
+    charlieDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      text: 'Charlie editing Bob message',
+    })
+  );
+
+  const bobDb = testEnv.authenticatedContext('bob', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+
+  // Author cannot change authorUid or hidden or authorName
+  await assertFails(
+    bobDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      text: 'Valid edit text',
+      hidden: true,
+    })
+  );
+  await assertFails(
+    bobDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      text: 'Valid edit text',
+      authorName: 'Impostor',
+    })
+  );
+
+  // Author CAN update text
+  await assertSucceeds(
+    bobDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      text: 'Edited message text by Bob',
+    })
+  );
+});
+
+test('admin can hide any message, non-admin cannot hide', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 1,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-bob').set({
+      text: 'Inappropriate message',
+      authorUid: 'bob',
+      authorName: 'Bob Builder',
+      createdAt: new Date(),
+      hidden: false,
+    });
+    await context.firestore().collection('admins').doc('admin-user').set({ role: 'admin' });
+  });
+
+  const aliceDb = testEnv.authenticatedContext('alice').firestore();
+  // Non-admin (even problem author) cannot hide another person's message
+  await assertFails(
+    aliceDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      hidden: true,
+    })
+  );
+
+  // Admin can hide message
+  const adminDb = testEnv.authenticatedContext('admin-user').firestore();
+  await assertSucceeds(
+    adminDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').update({
+      hidden: true,
+    })
+  );
+});
+
+test('author or admin can delete message, non-author cannot', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 1,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-bob').set({
+      text: 'Message by Bob',
+      authorUid: 'bob',
+      authorName: 'Bob Builder',
+      createdAt: new Date(),
+      hidden: false,
+    });
+    await context.firestore().collection('admins').doc('admin-user').set({ role: 'admin' });
+  });
+
+  const charlieDb = testEnv.authenticatedContext('charlie').firestore();
+  await assertFails(
+    charlieDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').delete()
+  );
+
+  const bobDb = testEnv.authenticatedContext('bob', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+  await assertSucceeds(
+    bobDb.collection('problems').doc('p1').collection('messages').doc('msg-bob').delete()
+  );
+});
+
+test('rate limiting: user cannot write a message within 10 seconds of previous message', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 0,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    // Set userStats to just now
+    await context.firestore().collection('userStats').doc('bob').set({
+      lastMessageAt: new Date(),
+    });
+  });
+
+  const bobDb = testEnv.authenticatedContext('bob', {
+    firebase: { sign_in_provider: 'google.com' },
+  }).firestore();
+
+  // Trying to post right away (<10s) must fail
+  const batch = bobDb.batch();
+  batch.set(bobDb.collection('problems').doc('p1').collection('messages').doc('msg-too-fast'), {
+    text: 'Too fast message',
+    authorUid: 'bob',
+    authorName: 'Bob Builder',
+    createdAt: new Date(),
+    hidden: false,
+  });
+  batch.update(bobDb.collection('problems').doc('p1'), {
+    commentCount: 1,
+  });
+  batch.set(bobDb.collection('userStats').doc('bob'), {
+    lastMessageAt: new Date(),
+  }, { merge: true });
+
+  await assertFails(batch.commit());
+});
+
+test('user can report a message and cannot report twice', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('problems').doc('p1').set({
+      text: 'Problem',
+      tag: 'Websites',
+      authorUid: 'alice',
+      status: 'open',
+      meTooCount: 0,
+      commentCount: 1,
+      reportCount: 0,
+      hidden: false,
+      createdAt: new Date(),
+    });
+    await context.firestore().collection('problems').doc('p1').collection('messages').doc('msg-1').set({
+      text: 'Spam message',
+      authorUid: 'spammer',
+      authorName: 'Spam',
+      createdAt: new Date(),
+      hidden: false,
+      reportCount: 0,
+    });
+  });
+
+  const userDb = testEnv.authenticatedContext('reporter1').firestore();
+
+  // First report succeeds
+  const batch1 = userDb.batch();
+  batch1.set(userDb.collection('problems').doc('p1').collection('messages').doc('msg-1').collection('reports').doc('reporter1'), {
+    createdAt: new Date(),
+  });
+  batch1.update(userDb.collection('problems').doc('p1').collection('messages').doc('msg-1'), {
+    reportCount: 1,
+  });
+  await assertSucceeds(batch1.commit());
+
+  // Second report fails (reports/reporter1 already exists and update is denied)
+  const batch2 = userDb.batch();
+  batch2.set(userDb.collection('problems').doc('p1').collection('messages').doc('msg-1').collection('reports').doc('reporter1'), {
+    createdAt: new Date(),
+  });
+  batch2.update(userDb.collection('problems').doc('p1').collection('messages').doc('msg-1'), {
+    reportCount: 2,
+  });
+  await assertFails(batch2.commit());
+});
+
+
 

@@ -13,6 +13,7 @@ import {
   checkContributorClaimed,
 } from '../services/contributorService';
 import ClaimContributorModal from './ClaimContributorModal';
+import DiscussionThread from './DiscussionThread';
 import { FORM_TAGS } from '../data/sampleData';
 
 export default function ProblemRow({
@@ -33,6 +34,9 @@ export default function ProblemRow({
   const [isVoting, setIsVoting] = useState(false);
   const [count, setCount] = useState(problem.meTooCount || 0);
 
+  const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(problem.commentCount || 0);
+
   const [hasReported, setHasReported] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [selfVoteNotice, setSelfVoteNotice] = useState(false);
@@ -47,6 +51,7 @@ export default function ProblemRow({
 
   useEffect(() => {
     setCount(problem.meTooCount || 0);
+    setCommentCount(problem.commentCount || 0);
     setEditText(problem.text);
     setEditTag(problem.tag);
     setEditProduct(problem.product || '');
@@ -270,12 +275,20 @@ export default function ProblemRow({
               ? 'You cannot upvote your own problem'
               : !currentUser || currentUser.isAnonymous
               ? 'Log in to upvote'
-              : hasVoted
-              ? 'Upvoted'
               : 'Upvote'
           }
         >
-          {hasVoted ? 'Upvoted' : 'Upvote'} · {count}
+          Upvote · {count}
+        </button>
+
+        <button
+          type="button"
+          className={`discuss-button ${isDiscussionOpen ? 'active' : ''}`}
+          onClick={() => setIsDiscussionOpen((prev) => !prev)}
+          aria-expanded={isDiscussionOpen}
+          title="Open discussion thread"
+        >
+          Discuss · {commentCount}
         </button>
 
         <span className="problem-meta-info">{metaParts.join(' · ')}</span>
@@ -392,6 +405,23 @@ export default function ProblemRow({
             if (onNavigate) onNavigate('/login');
             else window.location.assign('/login');
           }}
+        />
+      )}
+
+      {isDiscussionOpen && (
+        <DiscussionThread
+          problem={problem}
+          currentUser={currentUser}
+          onCommentCountChange={(newCount) => {
+            setCommentCount(newCount);
+            if (onProblemUpdated) {
+              onProblemUpdated({
+                ...problem,
+                commentCount: newCount,
+              });
+            }
+          }}
+          onNavigate={onNavigate}
         />
       )}
     </article>

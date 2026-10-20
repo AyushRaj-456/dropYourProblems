@@ -9,6 +9,7 @@ import {
   removeContributorAsAdmin,
 } from '../services/adminService';
 import { formatDate } from '../utils/formatDate';
+import DiscussionThread from '../components/DiscussionThread';
 
 export default function AdminPage({ currentUser, onNavigate }) {
   const [isAdmin, setIsAdmin] = useState(null);
@@ -21,6 +22,7 @@ export default function AdminPage({ currentUser, onNavigate }) {
   const [contributors, setContributors] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [actionError, setActionError] = useState(null);
+  const [openDiscussionId, setOpenDiscussionId] = useState(null);
 
   // Check admin status
   useEffect(() => {
@@ -331,6 +333,13 @@ export default function AdminPage({ currentUser, onNavigate }) {
                       <div className="admin-button-group">
                         <button
                           type="button"
+                          className={`secondary-button admin-action-btn ${openDiscussionId === p.id ? 'active' : ''}`}
+                          onClick={() => setOpenDiscussionId((prev) => (prev === p.id ? null : p.id))}
+                        >
+                          Discuss · {p.commentCount || 0}
+                        </button>
+                        <button
+                          type="button"
                           className="secondary-button admin-action-btn"
                           onClick={() => handleToggleHidden(p.id, p.hidden)}
                         >
@@ -345,6 +354,22 @@ export default function AdminPage({ currentUser, onNavigate }) {
                         </button>
                       </div>
                     </div>
+
+                    {openDiscussionId === p.id && (
+                      <div className="admin-card-discussion-wrap">
+                        <DiscussionThread
+                          problem={p}
+                          currentUser={currentUser}
+                          onCommentCountChange={(newCount) => {
+                            setProblems((prev) =>
+                              prev.map((item) =>
+                                item.id === p.id ? { ...item, commentCount: newCount } : item
+                              )
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
                   </article>
                 );
               })}

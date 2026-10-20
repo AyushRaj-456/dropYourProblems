@@ -14,8 +14,8 @@ Build every section from `design-reference/index.html` as React components with 
 Write and emulator-test the Firestore rules first. Then the post form, board reading live data (paginated), tag filter, sort, the login note and the "Posted" line. Edit and delete own post.
 **Done when:** a post made on one phone shows on another device, only its author can edit it, and the rules tests pass.
 
-## Phase 3: Me too and report
-Batched vote and report writes with one-per-person rules. Counts update on screen.
+## Phase 3: Upvote and report
+Batched upvote and report writes with one-per-person rules. Counts update on screen.
 **Done when:** tapping twice does nothing, you cannot vote on your own post, and the count is the same on every device.
 
 ## Phase 4: Voice
@@ -28,7 +28,7 @@ Google and email link, linking the anonymous account. Login link in header. "My 
 
 ## Phase 6: Contributors
 Threshold prompt on eligible posts, name and photo form with browser-side resize to a small square and compressed text storage, Contributors section and page.
-**Done when:** a post with 10 Me-too from other people lets its logged-in author join Contributors with a photo, anonymous authors are told to log in, and the rules reject a claim below 10 or by anyone else.
+**Done when:** a post with 10 Upvotes from other people lets its logged-in author join Contributors with a photo, anonymous authors are told to log in, and the rules reject a claim below 10 or by anyone else.
 
 ## Phase 7: Admin
 `/admin` for admins only: hide posts, most-reported first, set Building or Launched, remove contributors.
@@ -38,5 +38,9 @@ Threshold prompt on eligible posts, name and photo form with browser-side resize
 Empty and error states, 404, accessibility pass (keyboard, contrast, labels), meta tags, read-usage check against the free quota, remove sample data.
 **Done when:** the keyboard-only flow works end to end, a full board load stays within a sensible read count, and `docs/launch.md` can start.
 
+## Phase 9: Discussion
+Per-problem discussion thread with inline expandable view. Anyone can read, only logged-in users can write. Messages stored in subcollection with authorUid, authorName, createdAt, hidden, and optional "POSTER" badge for the problem creator. Problem `commentCount` incremented in the same batched write. Author can edit or delete own message, admin can hide or delete any message and review reports. Rate limiting (10s gap) in rules. Read quota protection: 30 oldest messages initially with Load More.
+**Done when:** a logged-in user can post a message that stays after refresh and on another device, a logged-out visitor can read but not write, and the count beside the button stays correct.
+
 ## Later
-Discussion tab per problem, college email restriction, weekly digest.
+College email restriction, weekly digest.

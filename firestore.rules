@@ -46,8 +46,9 @@ service cloud.firestore {
     match /userStats/{uid} {
       allow read: if isAuthor(uid);
       allow write: if isAuthor(uid)
-        && request.resource.data.keys().hasOnly(['lastPostAt'])
-        && (request.resource.data.lastPostAt == request.time || (request.resource.data.lastPostAt is timestamp && request.resource.data.lastPostAt <= request.time));
+        && request.resource.data.keys().hasOnly(['lastPostAt', 'lastMessageAt'])
+        && (!('lastPostAt' in request.resource.data) || request.resource.data.lastPostAt == request.time || (request.resource.data.lastPostAt is timestamp && request.resource.data.lastPostAt <= request.time))
+        && (!('lastMessageAt' in request.resource.data) || request.resource.data.lastMessageAt == request.time || (request.resource.data.lastMessageAt is timestamp && request.resource.data.lastMessageAt <= request.time));
     }
 
     // Problems
@@ -64,6 +65,7 @@ service cloud.firestore {
         && isValidTag(request.resource.data.tag)
         && request.resource.data.status == 'open'
         && request.resource.data.meTooCount == 0
+        && (!('commentCount' in request.resource.data) || request.resource.data.commentCount == 0)
         && request.resource.data.reportCount == 0
         && request.resource.data.hidden == false
         && request.resource.data.createdAt is timestamp
@@ -87,6 +89,7 @@ service cloud.firestore {
           && request.resource.data.authorUid == resource.data.authorUid
           && request.resource.data.status == resource.data.status
           && request.resource.data.meTooCount == resource.data.meTooCount
+          && (!('commentCount' in request.resource.data) || ('commentCount' in resource.data && request.resource.data.commentCount == resource.data.commentCount))
           && request.resource.data.reportCount == resource.data.reportCount
           && request.resource.data.hidden == resource.data.hidden
           && request.resource.data.createdAt == resource.data.createdAt
@@ -107,6 +110,20 @@ service cloud.firestore {
           && request.resource.data.meTooCount == resource.data.meTooCount + 1
           && request.auth.uid != resource.data.authorUid
           && !exists(/databases/$(database)/documents/problems/$(problemId)/votes/$(request.auth.uid))
+        )
+        // Or message commentCount increment (Phase 9) - requires non-anonymous authenticated user respecting rate limit
+        || (
+          isFullyAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount'])
+          && (
+            ('commentCount' in resource.data && request.resource.data.commentCount == resource.data.commentCount + 1)
+            || (!('commentCount' in resource.data) && request.resource.data.commentCount == 1)
+          )
+          && (
+            !exists(/databases/$(database)/documents/userStats/$(request.auth.uid))
+            || !('lastMessageAt' in get(/databases/$(database)/documents/userStats/$(request.auth.uid)).data)
+            || request.time > get(/databases/$(database)/documents/userStats/$(request.auth.uid)).data.lastMessageAt + duration.value(10, 's')
+          )
         )
         // Or report increment (Phase 3)
         || (
@@ -144,6 +161,73 @@ service cloud.firestore {
           && request.auth.uid == reporterUid
           && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time));
         allow update, delete: if false;
+      }
+
+      // Subcollection: messages (Phase 9 Discussion)
+      match /messages/{messageId} {
+        // Anyone can read non-hidden messages; admin can read all
+        allow read: if (resource != null && resource.data.hidden == false) || isAdmin();
+
+        // Create message: non-anonymous only, rate limited (10s gap)
+        allow create: if isFullyAuthenticated()
+          && request.auth.uid == request.resource.data.authorUid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.authorName is string
+          && request.resource.data.authorName.size() >= 1
+          && request.resource.data.authorName.size() <= 50
+          && request.resource.data.hidden == false
+          && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time))
+          && (!('reportCount' in request.resource.data) || request.resource.data.reportCount == 0)
+          && (
+            !exists(/databases/$(database)/documents/userStats/$(request.auth.uid))
+            || !('lastMessageAt' in get(/databases/$(database)/documents/userStats/$(request.auth.uid)).data)
+            || request.time > get(/databases/$(database)/documents/userStats/$(request.auth.uid)).data.lastMessageAt + duration.value(10, 's')
+          );
+
+        // Edit message: author only can update text; admin can hide; users can increment reportCount
+        allow update: if resource != null && (
+          // Author editing text
+          (
+            isAuthor(resource.data.authorUid)
+            && request.resource.data.authorUid == resource.data.authorUid
+            && request.resource.data.authorName == resource.data.authorName
+            && request.resource.data.createdAt == resource.data.createdAt
+            && request.resource.data.hidden == resource.data.hidden
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text'])
+            && request.resource.data.text is string
+            && request.resource.data.text.size() >= 1
+            && request.resource.data.text.size() <= 1000
+          )
+          // Admin hiding/unhiding
+          || (
+            isAdmin()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+            && request.resource.data.hidden is bool
+          )
+          // Reporting message
+          || (
+            isSignedIn()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportCount'])
+            && (
+              ('reportCount' in resource.data && request.resource.data.reportCount == resource.data.reportCount + 1)
+              || (!('reportCount' in resource.data) && request.resource.data.reportCount == 1)
+            )
+          )
+        );
+
+        // Delete message: author or admin
+        allow delete: if resource != null && (isAuthor(resource.data.authorUid) || isAdmin());
+
+        // Subcollection: reports on message
+        match /reports/{reporterUid} {
+          allow read: if isAdmin() || (isSignedIn() && request.auth.uid == reporterUid);
+          allow create: if isSignedIn()
+            && request.auth.uid == reporterUid
+            && (request.resource.data.createdAt == request.time || (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time));
+          allow update, delete: if false;
+        }
       }
     }
 

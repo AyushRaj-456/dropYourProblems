@@ -16,6 +16,7 @@ Anyone who regularly uses digital products and technology: working professionals
 7. **Contributors.** Section on the site listing people whose problem reached 10 upvotes.
 8. **Status labels.** Open (not shown), Building, Launched. Set only by the admin.
 9. **Admin page.** Hide posts, remove contributors, set status.
+10. **Discussion.** Separate thread per problem. Anyone can read, only logged-in users can write. Messages show author name, timestamp, and a "POSTER" badge for the problem creator. 10s cooldown between messages.
 
 Categories (fixed list): Websites, Browser Extensions, Mobile Apps, AI Tools, Developer Tools, Productivity, Gaming, Social Media, Digital Services, Hardware, Accessibility, Other.
 
@@ -26,6 +27,8 @@ Every visitor is signed in anonymously and silently. That identity lives in thei
 |---|---|---|
 | Post a problem | Yes | Yes |
 | Upvote | No, must log in first | Yes |
+| Read discussion | Yes | Yes |
+| Write in discussion | No, must log in first | Yes |
 | Report | Yes | Yes |
 | Edit or delete own post | Yes, but only in this browser | From any device |
 | "My problems" | Only in this browser | From any device |
@@ -37,23 +40,23 @@ Note shown on the post form, near the Drop it button:
 After an anonymous post, show a short confirmation: "Posted. It is saved in this browser only. Log in to keep it for good." with a Log in link.
 
 Known limit: if someone who already has an account logs in on a browser that holds anonymous posts, those posts cannot be moved into the existing account. Tell them plainly and encourage logging in before posting.
-
-## Contributor rule
-- The threshold is 10 upvotes, kept as one constant shared by the app and the security rules.
-- The poster's own tap does not count.
-- When a logged-in poster's problem reaches the threshold, they see a prompt on that post: add a display name (required) and a photo (optional), then submit.
-- The post then appears in the Contributors section with photo, name, problem title and upvote count.
-- An anonymous poster who reaches the threshold sees "Log in to claim this."
-- Admin can remove any contributor.
-- Photos are resized in the browser to a small square (about 300px) and stored as a compressed text string inside the contributor record, well under 60 KB. There is no file storage.
-
-## Not in v1
-Discussion threads per problem, images on problems, comments, notifications, search, dark mode, multiple colleges.
-
-## v2 candidates
-Discussion tab per problem (flat list of fix ideas), restrict to college email, weekly top-problems digest, public "built because of this problem" page.
-
-## Success
-- 30 real problems posted in the first week
-- Top 5 problems have 20 or more Me-too each
-- At least one problem moves to Building
+43: 
+44: ## Contributor rule
+45: - The threshold is 10 upvotes, kept as one constant shared by the app and the security rules.
+46: - The poster's own tap does not count.
+47: - When a logged-in poster's problem reaches the threshold, they see a prompt on that post: add a display name (required) and a photo (optional), then submit.
+48: - The post then appears in the Contributors section with photo, name, problem title and upvote count.
+49: - An anonymous poster who reaches the threshold sees "Log in to claim this."
+50: - Admin can remove any contributor.
+51: - Photos are resized in the browser to a small square (about 300px) and stored as a compressed text string inside the contributor record, well under 60 KB. There is no file storage.
+52: 
+53: ## Not in v1
+54: Images on problems, notifications, search, dark mode, multiple colleges.
+55: 
+56: ## v2 candidates
+57: Restrict to college email, weekly top-problems digest, public "built because of this problem" page.
+58: 
+59: ## Success
+60: - 30 real problems posted in the first week
+61: - Top 5 problems have 20 or more Upvotes each
+62: - At least one problem moves to Building

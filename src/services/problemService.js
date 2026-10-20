@@ -47,6 +47,7 @@ export async function createProblem({
     tag: tag || 'Websites',
     status: 'open',
     meTooCount: 0,
+    commentCount: 0,
     reportCount: 0,
     hidden: false,
     authorUid: currentUser.uid,
